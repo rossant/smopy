@@ -1,3 +1,12 @@
+"""Smopy: OpenStreetMap image tiles in Python.
+
+Give a box in geographical coordinates (latitude/longitude), smopy returns
+a PNG image at any zoom level!
+
+"""
+# -----------------------------------------------------------------------------
+# Imports
+# -----------------------------------------------------------------------------
 import math
 import urllib2
 import cStringIO
@@ -7,11 +16,86 @@ import numpy as np
 import matplotlib.pyplot as plt
 from IPython.display import display_png
 
+
+# -----------------------------------------------------------------------------
+# Constants
+# -----------------------------------------------------------------------------
 __version__ = '0.0.1'
 TILE_SIZE = 256
 MAXTILES = 20
 
+
+# -----------------------------------------------------------------------------
+# OSM functions
+# -----------------------------------------------------------------------------
+def get_url(x, y, z):
+    """Return the URL to the image tile (x, y) at zoom z."""
+    return "http://tile.openstreetmap.org/{z}/{x}/{y}.png".format(z=z, x=x, y=y)
+
+def fetch_tile(x, y, z):
+    """Fetch tile (x, y) at zoom level z from OpenStreetMap's servers.
+    
+    Return a PIL image.
+    
+    """
+    url = get_url(x,y,z)
+    png = cStringIO.StringIO(urllib2.urlopen(url).read())
+    img = Image.open(png)
+    img.load()
+    return img
+
+def fetch_map(box, z):
+    """Fetch OSM tiles composing a box at a given zoom level, and
+    return the assembled PIL image."""
+    x0, y0, x1, y1 = box
+    x0, x1 = min(x0, x1), max(x0, x1)
+    y0, y1 = min(y0, y1), max(y0, y1)
+    x0 = max(0, x0)
+    x1 = min(2**z-1, x1)
+    y0 = max(0, y0)
+    y1 = min(2**z-1, y1)
+    sx, sy = x1 - x0 + 1, y1 - y0 + 1
+    if sx+sy >= MAXTILES:
+        raise ArgumentError(("You are requesting a very large map, beware of "
+                 "OpenStreetMap tile usage policy "
+                 "(http://wiki.openstreetmap.org/wiki/Tile_usage_policy)."))
+    img = Image.new('RGB', (sx*TILE_SIZE, sy*TILE_SIZE))
+    for x in range(x0, x1 + 1):
+        for y in range(y0, y1 + 1):
+            px, py = TILE_SIZE * (x - x0), TILE_SIZE * (y - y0)
+            img.paste(fetch_tile(x, y, z), (px, py))
+    return img
+
+
+# -----------------------------------------------------------------------------
+# Utility imaging functions
+# -----------------------------------------------------------------------------
+def image_to_png(img):
+    """Convert a PIL image to a PNG binary string."""
+    exp = cStringIO.StringIO()
+    img.save(exp, format='png')
+    exp.reset()
+    s = exp.read()
+    exp.close()
+    return s
+
+def image_to_numpy(img):
+    """Convert a PIL image to a NumPy array."""
+    return np.array(img)
+
+
+# -----------------------------------------------------------------------------
+# Functions related to coordinates
+# -----------------------------------------------------------------------------
 def deg2num(lat_deg, lon_deg, zoom, do_round=True):
+    """Convert from latitude and longitude to tile numbers.
+    
+    If do_round is True, return integers. Otherwise, return floating point
+    values.
+    
+    Source: http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Python
+    
+    """
     lat_rad = np.radians(lat_deg)
     n = 2.0 ** zoom
     if do_round:
@@ -31,60 +115,26 @@ def deg2num(lat_deg, lon_deg, zoom, do_round=True):
             ytile = int(ytile)
     return (xtile, ytile)
 
-def get_url(x, y, z):
-    # x = np.clip(x, 0, 2 ** z - 1)
-    # y = np.clip(y, 0, 2 ** z - 1)
-    return "http://tile.openstreetmap.org/{z}/{x}/{y}.png".format(z=z, x=x, y=y)
-
-def get_tile(x, y, z):
-    url = get_url(x,y,z)
-    png = cStringIO.StringIO(urllib2.urlopen(url).read())
-    img = Image.open(png)
-    img.load()
-    return img
-
-def image_to_png(img):
-    exp = cStringIO.StringIO()
-    img.save(exp, format='png')
-    exp.reset()
-    s = exp.read()
-    exp.close()
-    return s
-
-def image_to_numpy(img):
-    return np.array(img)
-    
-def fetch_map(box, z):
-    x0, y0, x1, y1 = box
-    x0, x1 = min(x0, x1), max(x0, x1)
-    y0, y1 = min(y0, y1), max(y0, y1)
-    x0 = max(0, x0)
-    x1 = min(2**z-1, x1)
-    y0 = max(0, y0)
-    y1 = min(2**z-1, y1)
-    sx, sy = x1 - x0 + 1, y1 - y0 + 1
-    if sx+sy >= MAXTILES:
-        raise ArgumentError(("You are requesting a very large map, beware of "
-                 "OpenStreetMap tile usage policy "
-                 "(http://wiki.openstreetmap.org/wiki/Tile_usage_policy)."))
-    img = Image.new('RGB', (sx*TILE_SIZE, sy*TILE_SIZE))
-    for x in range(x0, x1 + 1):
-        for y in range(y0, y1 + 1):
-            px, py = TILE_SIZE * (x - x0), TILE_SIZE * (y - y0)
-            img.paste(get_tile(x, y, z), (px, py))
-    return img
-
 def get_tile_box(box_latlon, z):
+    """Convert a box in geographical coordinates to a box in
+    tile coordinates (integers), at a given zoom level.
+    
+    box_latlon is lat0, lon0, lat1, lon1.
+    
+    """
     lat0, lon0, lat1, lon1 = box_latlon
     x0, y0 = deg2num(lat0, lon0, z)
     x1, y1 = deg2num(lat1, lon1, z)
     return (x0, y0, x1, y1)
 
 def get_tile_coords(lat, lon, z):
+    """Convert geographical coordinates to tile coordinates (integers),
+    at a given zoom level."""
     return deg2num(lat, lon, z, do_round=False)
 
-def extend_box(box, margin=.1):
-    (lat0, lon0, lat1, lon1) = box
+def extend_box(box_latlon, margin=.1):
+    """Extend a box in geographical coordinates with a relative margin."""
+    (lat0, lon0, lat1, lon1) = box_latlon
     lat0, lat1 = min(lat0, lat1), max(lat0, lat1)
     lon0, lon1 = min(lon0, lon1), max(lon0, lon1)
     dlat = (lat1 - lat0)
@@ -92,8 +142,36 @@ def extend_box(box, margin=.1):
     return (lat0 - dlat * margin, lon0 - dlon * margin, 
             lat1 + dlat * margin, lon1 + dlon * margin)
 
+
+# -----------------------------------------------------------------------------
+# Main Map class
+# -----------------------------------------------------------------------------
 class Map(object):
+    """Represent an OpenStreetMap image.
+    
+    Initialized as:
+    
+        map = Map((lat_min, lon_min, lat_max, lon_max), z=z)
+        
+    where the first argument is a box in geographical coordinates, and z
+    is the zoom level (from minimum zoom 1 to maximum zoom 19).
+    
+    Methods:
+    
+    * To display in the IPython notebook: `map.show_ipython()`.
+    
+    * To create a matplotlib plot: `ax = map.show_mpl()`.
+    
+    * To save a PNG: `map.save_png(filename)`.
+    
+    """
     def __init__(self, box, lon=None, z=3):
+        """Create and fetch the map with a given box in geographical 
+        coordinates.
+        
+        Can be called with `Map(box, z=z)` or `Map(lat, lon, z=z)`.
+        
+        """
         if not hasattr(box, '__len__'):
             assert lon is not None
             box = (box, lon)
@@ -108,6 +186,7 @@ class Map(object):
         self.fetch()
     
     def to_pixels(self, lat, lon=None):
+        """Convert from geographical coordinates to pixels in the image."""
         return_2D = False
         if lon is None:
             if isinstance(lat, np.ndarray):
@@ -126,12 +205,14 @@ class Map(object):
             return px, py
     
     def fetch(self):
+        """Fetch the image from OSM's servers."""
         if self.img is None:
             self.img = fetch_map(self.box_tile, self.z)
         self.w, self.h = self.img.size
         return self.img
     
     def show_mpl(self, ax=None, figsize=None, dpi=None):
+        """Show the image in matplotlib."""
         if not ax:
             plt.figure(figsize=figsize, dpi=dpi)
             ax = plt.subplot(111)
@@ -146,16 +227,20 @@ class Map(object):
         return ax
         
     def show_ipython(self):
+        """Show the image in IPython as a PNG image."""
         png = image_to_png(self.img)
         display_png(png, raw=True)
 
     def to_pil(self):
+        """Return the PIL image."""
         return self.img
         
     def to_numpy(self):
+        """Return the image as a NumPy array."""
         return image_to_numpy(self.img)
         
     def save_png(self, filename):
+        """Save the image to a PNG file."""
         png = image_to_png(self.img)
         with open(filename, 'wb') as f:
             f.write(png)
