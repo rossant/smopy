@@ -1,7 +1,7 @@
 """Smopy: OpenStreetMap image tiles in Python.
 
-Give a box in geographical coordinates (latitude/longitude), smopy returns
-a PNG image at any zoom level!
+Give a box in geographical coordinates (latitude/longitude) and a zoom level, 
+Smopy returns an OpenStreetMap tile image!
 
 """
 # -----------------------------------------------------------------------------
