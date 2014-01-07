@@ -32,6 +32,8 @@ def deg2num(lat_deg, lon_deg, zoom, do_round=True):
     return (xtile, ytile)
 
 def get_url(x, y, z):
+    # x = np.clip(x, 0, 2 ** z - 1)
+    # y = np.clip(y, 0, 2 ** z - 1)
     return "http://tile.openstreetmap.org/{z}/{x}/{y}.png".format(z=z, x=x, y=y)
 
 def get_tile(x, y, z):
@@ -56,6 +58,10 @@ def fetch_map(box, z):
     x0, y0, x1, y1 = box
     x0, x1 = min(x0, x1), max(x0, x1)
     y0, y1 = min(y0, y1), max(y0, y1)
+    x0 = max(0, x0)
+    x1 = min(2**z-1, x1)
+    y0 = max(0, y0)
+    y1 = min(2**z-1, y1)
     sx, sy = x1 - x0 + 1, y1 - y0 + 1
     if sx+sy >= MAXTILES:
         raise ArgumentError(("You are requesting a very large map, beware of "
@@ -102,24 +108,40 @@ class Map(object):
         self.fetch()
     
     def to_pixels(self, lat, lon=None):
+        return_2D = False
         if lon is None:
             if isinstance(lat, np.ndarray):
                 assert lat.ndim == 2
                 assert lat.shape[1] == 2
                 lat, lon = lat.T
+                return_2D = True
             else:
                 lat, lon = lat
         x, y = get_tile_coords(lat, lon, self.z)
-        return (x - self.xmin) * TILE_SIZE, (y - self.ymin) * TILE_SIZE
+        px = (x - self.xmin) * TILE_SIZE
+        py = (y - self.ymin) * TILE_SIZE
+        if return_2D:
+            return np.c_[px, py]
+        else:
+            return px, py
     
     def fetch(self):
         if self.img is None:
             self.img = fetch_map(self.box_tile, self.z)
+        self.w, self.h = self.img.size
         return self.img
     
-    def show_mpl(self, ax=None):
+    def show_mpl(self, ax=None, figsize=None, dpi=None):
         if not ax:
+            plt.figure(figsize=figsize, dpi=dpi)
             ax = plt.subplot(111)
+            plt.xticks([]);
+            plt.yticks([]);
+            plt.grid(False)
+            plt.xlim(0, self.w);
+            plt.ylim(self.h, 0)
+            plt.axis('off');
+            plt.tight_layout();
         ax.imshow(self.img);
         return ax
         
