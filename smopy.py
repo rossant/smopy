@@ -20,7 +20,7 @@ from IPython.display import display_png
 # -----------------------------------------------------------------------------
 # Constants
 # -----------------------------------------------------------------------------
-__version__ = '0.0.1'
+__version__ = '0.0.2dev'
 TILE_SIZE = 256
 MAXTILES = 20
 
@@ -132,6 +132,50 @@ def get_tile_coords(lat, lon, z):
     at a given zoom level."""
     return deg2num(lat, lon, z, do_round=False)
 
+def _box(*args):
+    """Return a tuple (lat0, lon0, lat1, lon1) from a coordinate box that
+    can be specified in multiple ways:
+    
+    A. box((lat0, lon0))  # nargs = 1
+    B. box((lat0, lon0, lat1, lon1))  # nargs = 1
+    C. box(lat0, lon0)  # nargs = 2
+    D. box((lat0, lon0), (lat1, lon1))  # nargs = 2
+    E. box(lat0, lon0, lat1, lon1)  # nargs = 4    
+    
+    """
+    nargs = len(args)
+    assert nargs in (1, 2, 4)
+    pos1 = None
+    
+    # Case A.
+    if nargs == 1:
+        assert hasattr(args[0], '__len__')
+        pos = args[0]
+        assert len(pos) in (2, 4)
+        if len(pos) == 2:
+            pos0 = pos
+        elif len(pos) == 4:
+            pos0 = pos[:2]
+            pos1 = pos[2:]
+        
+    elif nargs == 2:
+        # Case C.
+        if not hasattr(args[0], '__len__'):
+            pos0 = args[0], args[1]
+        # Case D.
+        else:
+            pos0, pos1 = args[0], args[1]
+    
+    # Case E.
+    elif nargs == 4:
+        pos0 = args[0], args[1]
+        pos1 = args[2], args[3]
+        
+    if pos1 is None:
+        pos1 = pos0
+        
+    return (pos0[0], pos0[1], pos1[0], pos1[1])
+
 def extend_box(box_latlon, margin=.1):
     """Extend a box in geographical coordinates with a relative margin."""
     (lat0, lon0, lat1, lon1) = box_latlon
@@ -165,18 +209,18 @@ class Map(object):
     * To save a PNG: `map.save_png(filename)`.
     
     """
-    def __init__(self, box, lon=None, z=3):
+    def __init__(self, *args, **kwargs):
         """Create and fetch the map with a given box in geographical 
         coordinates.
         
         Can be called with `Map(box, z=z)` or `Map(lat, lon, z=z)`.
         
         """
-        if not hasattr(box, '__len__'):
-            assert lon is not None
-            box = (box, lon)
-        if len(box) == 2:
-            box = (box[0], box[1], box[0], box[1])
+        z = kwargs.get('z', 3)
+        margin = kwargs.get('margin', None)
+        box = _box(*args)
+        if margin is not None:
+            box = extend_box(box, margin)
         self.box = box
         self.z = z
         self.box_tile = get_tile_box(self.box, self.z)
