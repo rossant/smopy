@@ -25,7 +25,7 @@ ax.plot(x, y, 'or', ms=10, mew=2);
 
 Smopy currently requires:
 
-* PIL or Pillow
+* Pillow
 * NumPy
 * matplotlib
 * IPython
