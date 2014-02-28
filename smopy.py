@@ -221,7 +221,7 @@ class Map(object):
         z = kwargs.get('z', 3)
         margin = kwargs.get('margin', None)
         url = kwargs.get('url','http://tile.openstreetmap.org')
-
+        url = url if url[-1]!='/': else url[:-1]
         box = _box(*args)
         if margin is not None:
             box = extend_box(box, margin)
