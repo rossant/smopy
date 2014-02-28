@@ -234,9 +234,6 @@ class Map(object):
         self.img = None
         self.fetch()
     
-    def SetTileServer(self,url):
-        self.url = url
-
     def to_pixels(self, lat, lon=None):
         """Convert from geographical coordinates to pixels in the image."""
         return_2D = False
