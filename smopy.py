@@ -19,22 +19,23 @@ import matplotlib.pyplot as plt
 from IPython.display import display_png
 
 
+
 # -----------------------------------------------------------------------------
 # Constants
 # -----------------------------------------------------------------------------
 __version__ = '0.0.2dev'
 TILE_SIZE = 256
 MAXTILES = 20
-
+DEFAULT_BASEURL = 'http://tile.openstreetmap.org'
 
 # -----------------------------------------------------------------------------
 # OSM functions
 # -----------------------------------------------------------------------------
-def get_url(x, y, z, baseurl):
+def get_url(x, y, z, baseurl=DEFAULT_BASEURL):
     """Return the URL to the image tile (x, y) at zoom z."""
     return baseurl+("/{z}/{x}/{y}.png".format(z=z, x=x, y=y))
     
-def fetch_tile(x, y, z, baseurl):
+def fetch_tile(x, y, z, baseurl=DEFAULT_BASEURL):
     """Fetch tile (x, y) at zoom level z from OpenStreetMap's servers.
     
     Return a PIL image.
@@ -46,7 +47,7 @@ def fetch_tile(x, y, z, baseurl):
     img.load()
     return img
 
-def fetch_map(box, z, baseurl):
+def fetch_map(box, z, baseurl=DEFAULT_BASEURL):
     """Fetch OSM tiles composing a box at a given zoom level, and
     return the assembled PIL image."""
     x0, y0, x1, y1 = box
@@ -220,7 +221,7 @@ class Map(object):
         """
         z = kwargs.get('z', 3)
         margin = kwargs.get('margin', None)
-        baseurl = kwargs.get('baseurl','http://tile.openstreetmap.org')
+        baseurl = kwargs.get('baseurl',DEFAULT_BASEURL)
         baseurl = baseurl if baseurl[-1]!='/' else baseurl[:-1]
         box = _box(*args)
         if margin is not None:
