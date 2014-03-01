@@ -1,6 +1,8 @@
 """Smopy: OpenStreetMap image tiles in Python.
 
 Give a box in geographical coordinates (latitude/longitude) and a zoom level, 
+and url (default = http://tile.openstreetmap.org ) for example "http://otile1.mqcdn.com/tiles/1.0.0/osm"
+
 Smopy returns an OpenStreetMap tile image!
 
 """
@@ -17,34 +19,35 @@ import matplotlib.pyplot as plt
 from IPython.display import display_png
 
 
+
 # -----------------------------------------------------------------------------
 # Constants
 # -----------------------------------------------------------------------------
 __version__ = '0.0.2dev'
 TILE_SIZE = 256
 MAXTILES = 20
-
+DEFAULT_BASEURL = 'http://tile.openstreetmap.org'
 
 # -----------------------------------------------------------------------------
 # OSM functions
 # -----------------------------------------------------------------------------
-def get_url(x, y, z):
+def get_url(x, y, z, baseurl=DEFAULT_BASEURL):
     """Return the URL to the image tile (x, y) at zoom z."""
-    return "http://tile.openstreetmap.org/{z}/{x}/{y}.png".format(z=z, x=x, y=y)
-
-def fetch_tile(x, y, z):
+    return baseurl+("/{z}/{x}/{y}.png".format(z=z, x=x, y=y))
+    
+def fetch_tile(x, y, z, baseurl=DEFAULT_BASEURL):
     """Fetch tile (x, y) at zoom level z from OpenStreetMap's servers.
     
     Return a PIL image.
     
     """
-    url = get_url(x,y,z)
+    url = get_url(x,y,z, baseurl)
     png = cStringIO.StringIO(urllib2.urlopen(url).read())
     img = Image.open(png)
     img.load()
     return img
 
-def fetch_map(box, z):
+def fetch_map(box, z, baseurl=DEFAULT_BASEURL):
     """Fetch OSM tiles composing a box at a given zoom level, and
     return the assembled PIL image."""
     x0, y0, x1, y1 = box
@@ -63,9 +66,9 @@ def fetch_map(box, z):
     for x in range(x0, x1 + 1):
         for y in range(y0, y1 + 1):
             px, py = TILE_SIZE * (x - x0), TILE_SIZE * (y - y0)
-            img.paste(fetch_tile(x, y, z), (px, py))
+            img.paste(fetch_tile(x, y, z, baseurl), (px, py))
     return img
-
+ 
 
 # -----------------------------------------------------------------------------
 # Utility imaging functions
@@ -218,11 +221,14 @@ class Map(object):
         """
         z = kwargs.get('z', 3)
         margin = kwargs.get('margin', None)
+        baseurl = kwargs.get('baseurl',DEFAULT_BASEURL)
+        baseurl = baseurl if baseurl[-1]!='/' else baseurl[:-1]
         box = _box(*args)
         if margin is not None:
             box = extend_box(box, margin)
         self.box = box
         self.z = z
+        self.baseurl = baseurl
         self.box_tile = get_tile_box(self.box, self.z)
         self.xmin = min(self.box_tile[0], self.box_tile[2])
         self.ymin = min(self.box_tile[1], self.box_tile[3])
@@ -251,7 +257,7 @@ class Map(object):
     def fetch(self):
         """Fetch the image from OSM's servers."""
         if self.img is None:
-            self.img = fetch_map(self.box_tile, self.z)
+            self.img = fetch_map(self.box_tile, self.z,self.baseurl)
         self.w, self.h = self.img.size
         return self.img
     
