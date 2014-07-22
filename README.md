@@ -1,6 +1,8 @@
 Smopy
 =====
 
+**New: you may be interested in [Folium](https://github.com/wrobstory/folium) for interactive maps with Leaflet.js**
+
 Give a box in geographical coordinates (latitude/longitude) and a zoom level, Smopy returns an OpenStreetMap tile image!
 
 ```python
