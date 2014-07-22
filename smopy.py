@@ -8,8 +8,8 @@ Smopy returns an OpenStreetMap tile image!
 # Imports
 # -----------------------------------------------------------------------------
 import math
-import urllib2
-import cStringIO
+from six import BytesIO
+from six.moves.urllib.request import urlopen
 
 from PIL import Image
 import numpy as np
@@ -39,7 +39,7 @@ def fetch_tile(x, y, z):
     
     """
     url = get_url(x,y,z)
-    png = cStringIO.StringIO(urllib2.urlopen(url).read())
+    png = BytesIO(urlopen(url).read())
     img = Image.open(png)
     img.load()
     return img
@@ -72,7 +72,7 @@ def fetch_map(box, z):
 # -----------------------------------------------------------------------------
 def image_to_png(img):
     """Convert a PIL image to a PNG binary string."""
-    exp = cStringIO.StringIO()
+    exp = BytesIO()
     img.save(exp, format='png')
     exp.reset()
     s = exp.read()
