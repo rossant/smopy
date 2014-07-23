@@ -1,13 +1,12 @@
 import os
 from setuptools import setup
-import smopy
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(
     name="smopy",
-    version=smopy.__version__,
+    version='0.0.2',
     author="Cyrille Rossant",
     author_email="rossant@github",
     description=(("OpenStreetMap image tiles in Python")),
