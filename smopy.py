@@ -74,7 +74,7 @@ def image_to_png(img):
     """Convert a PIL image to a PNG binary string."""
     exp = BytesIO()
     img.save(exp, format='png')
-    exp.reset()
+    exp.seek(0)
     s = exp.read()
     exp.close()
     return s
