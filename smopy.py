@@ -56,7 +56,7 @@ def fetch_map(box, z):
     y1 = min(2**z-1, y1)
     sx, sy = x1 - x0 + 1, y1 - y0 + 1
     if sx+sy >= MAXTILES:
-        raise ArgumentError(("You are requesting a very large map, beware of "
+        raise Exception(("You are requesting a very large map, beware of "
                  "OpenStreetMap tile usage policy "
                  "(http://wiki.openstreetmap.org/wiki/Tile_usage_policy)."))
     img = Image.new('RGB', (sx*TILE_SIZE, sy*TILE_SIZE))
