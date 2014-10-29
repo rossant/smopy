@@ -1,6 +1,6 @@
 """Smopy: OpenStreetMap image tiles in Python.
 
-Give a box in geographical coordinates (latitude/longitude) and a zoom level, 
+Give a box in geographical coordinates (latitude/longitude) and a zoom level,
 Smopy returns an OpenStreetMap tile image!
 
 """
@@ -20,7 +20,7 @@ from IPython.display import display_png
 # -----------------------------------------------------------------------------
 # Constants
 # -----------------------------------------------------------------------------
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 TILE_SIZE = 256
 MAXTILES = 20
 
@@ -34,9 +34,9 @@ def get_url(x, y, z):
 
 def fetch_tile(x, y, z):
     """Fetch tile (x, y) at zoom level z from OpenStreetMap's servers.
-    
+
     Return a PIL image.
-    
+
     """
     url = get_url(x,y,z)
     png = BytesIO(urlopen(url).read())
@@ -89,12 +89,12 @@ def image_to_numpy(img):
 # -----------------------------------------------------------------------------
 def deg2num(lat_deg, lon_deg, zoom, do_round=True):
     """Convert from latitude and longitude to tile numbers.
-    
+
     If do_round is True, return integers. Otherwise, return floating point
     values.
-    
+
     Source: http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Python
-    
+
     """
     lat_rad = np.radians(lat_deg)
     n = 2.0 ** zoom
@@ -118,9 +118,9 @@ def deg2num(lat_deg, lon_deg, zoom, do_round=True):
 def get_tile_box(box_latlon, z):
     """Convert a box in geographical coordinates to a box in
     tile coordinates (integers), at a given zoom level.
-    
+
     box_latlon is lat0, lon0, lat1, lon1.
-    
+
     """
     lat0, lon0, lat1, lon1 = box_latlon
     x0, y0 = deg2num(lat0, lon0, z)
@@ -135,18 +135,18 @@ def get_tile_coords(lat, lon, z):
 def _box(*args):
     """Return a tuple (lat0, lon0, lat1, lon1) from a coordinate box that
     can be specified in multiple ways:
-    
+
     A. box((lat0, lon0))  # nargs = 1
     B. box((lat0, lon0, lat1, lon1))  # nargs = 1
     C. box(lat0, lon0)  # nargs = 2
     D. box((lat0, lon0), (lat1, lon1))  # nargs = 2
-    E. box(lat0, lon0, lat1, lon1)  # nargs = 4    
-    
+    E. box(lat0, lon0, lat1, lon1)  # nargs = 4
+
     """
     nargs = len(args)
     assert nargs in (1, 2, 4)
     pos1 = None
-    
+
     # Case A.
     if nargs == 1:
         assert hasattr(args[0], '__len__')
@@ -157,7 +157,7 @@ def _box(*args):
         elif len(pos) == 4:
             pos0 = pos[:2]
             pos1 = pos[2:]
-        
+
     elif nargs == 2:
         # Case C.
         if not hasattr(args[0], '__len__'):
@@ -165,15 +165,15 @@ def _box(*args):
         # Case D.
         else:
             pos0, pos1 = args[0], args[1]
-    
+
     # Case E.
     elif nargs == 4:
         pos0 = args[0], args[1]
         pos1 = args[2], args[3]
-        
+
     if pos1 is None:
         pos1 = pos0
-        
+
     return (pos0[0], pos0[1], pos1[0], pos1[1])
 
 def extend_box(box_latlon, margin=.1):
@@ -183,7 +183,7 @@ def extend_box(box_latlon, margin=.1):
     lon0, lon1 = min(lon0, lon1), max(lon0, lon1)
     dlat = (lat1 - lat0)
     dlon = (lon1 - lon0)
-    return (lat0 - dlat * margin, lon0 - dlon * margin, 
+    return (lat0 - dlat * margin, lon0 - dlon * margin,
             lat1 + dlat * margin, lon1 + dlon * margin)
 
 
@@ -192,29 +192,29 @@ def extend_box(box_latlon, margin=.1):
 # -----------------------------------------------------------------------------
 class Map(object):
     """Represent an OpenStreetMap image.
-    
+
     Initialized as:
-    
+
         map = Map((lat_min, lon_min, lat_max, lon_max), z=z)
-        
+
     where the first argument is a box in geographical coordinates, and z
     is the zoom level (from minimum zoom 1 to maximum zoom 19).
-    
+
     Methods:
-    
+
     * To display in the IPython notebook: `map.show_ipython()`.
-    
+
     * To create a matplotlib plot: `ax = map.show_mpl()`.
-    
+
     * To save a PNG: `map.save_png(filename)`.
-    
+
     """
     def __init__(self, *args, **kwargs):
-        """Create and fetch the map with a given box in geographical 
+        """Create and fetch the map with a given box in geographical
         coordinates.
-        
+
         Can be called with `Map(box, z=z)` or `Map(lat, lon, z=z)`.
-        
+
         """
         z = kwargs.get('z', 3)
         margin = kwargs.get('margin', None)
@@ -228,7 +228,7 @@ class Map(object):
         self.ymin = min(self.box_tile[1], self.box_tile[3])
         self.img = None
         self.fetch()
-    
+
     def to_pixels(self, lat, lon=None):
         """Convert from geographical coordinates to pixels in the image."""
         return_2D = False
@@ -247,14 +247,14 @@ class Map(object):
             return np.c_[px, py]
         else:
             return px, py
-    
+
     def fetch(self):
         """Fetch the image from OSM's servers."""
         if self.img is None:
             self.img = fetch_map(self.box_tile, self.z)
         self.w, self.h = self.img.size
         return self.img
-    
+
     def show_mpl(self, ax=None, figsize=None, dpi=None):
         """Show the image in matplotlib."""
         if not ax:
@@ -269,7 +269,7 @@ class Map(object):
             plt.tight_layout();
         ax.imshow(self.img);
         return ax
-        
+
     def show_ipython(self):
         """Show the image in IPython as a PNG image."""
         png = image_to_png(self.img)
@@ -278,14 +278,14 @@ class Map(object):
     def to_pil(self):
         """Return the PIL image."""
         return self.img
-        
+
     def to_numpy(self):
         """Return the image as a NumPy array."""
         return image_to_numpy(self.img)
-        
+
     def save_png(self, filename):
         """Save the image to a PNG file."""
         png = image_to_png(self.img)
         with open(filename, 'wb') as f:
             f.write(png)
-        
+
