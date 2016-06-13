@@ -7,6 +7,8 @@ Smopy returns an OpenStreetMap tile image!
 # -----------------------------------------------------------------------------
 # Imports
 # -----------------------------------------------------------------------------
+from __future__ import print_function
+
 from six import BytesIO
 from six.moves.urllib.request import urlopen
 
@@ -19,9 +21,9 @@ from IPython.display import display_png
 # -----------------------------------------------------------------------------
 # Constants
 # -----------------------------------------------------------------------------
-__version__ = '0.0.3'
+__version__ = '0.0.3dev'
 TILE_SIZE = 256
-MAXTILES = 25
+MAXTILES = 16
 TILE_SERVER = "http://tile.openstreetmap.org/{z}/{x}/{y}.png"
 
 
@@ -278,7 +280,8 @@ class Map(object):
 
         self.z = self.get_allowed_zoom(z)
         if z > self.z:
-            print 'Lowered zoom level to keep map size reasonable'
+            print('Lowered zoom level to keep map size reasonable. '
+                  '(z = %d)' % self.z)
         else:
             self.z = z
         self.box_tile = get_tile_box(self.box, self.z)
