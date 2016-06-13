@@ -325,8 +325,22 @@ class Map(object):
         self.w, self.h = self.img.size
         return self.img
 
-    def show_mpl(self, ax=None, figsize=None, dpi=None):
-        """Show the image in matplotlib."""
+    def show_mpl(self, ax=None, figsize=None, dpi=None, **imshow_kwargs):
+        """Show the image in matplotlib.
+
+        Parameters
+        ----------
+        ax : matplotlib axes, optional
+            Matplotlib axes used to show the image.  If `None`, a
+            a new figure is created.  Default is `None`.
+        figsize, dpi : optional
+            These arguments are passed as arguments for the created
+            figure if `ax` is `None`.  Default is `None` for both
+            parameters.
+        **imshow_kwargs : optional
+            All remaining keyword arguments are passed to matplotlib
+            imshow.
+        """
         if not ax:
             plt.figure(figsize=figsize, dpi=dpi)
             ax = plt.subplot(111)
@@ -337,7 +351,7 @@ class Map(object):
             plt.ylim(self.h, 0)
             plt.axis('off')
             plt.tight_layout()
-        ax.imshow(self.img)
+        ax.imshow(self.img, **imshow_kwargs)
         return ax
 
     def show_ipython(self):
