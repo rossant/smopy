@@ -21,6 +21,8 @@ ax.plot(x, y, 'or', ms=10, mew=2);
 ```
 ![Europe map](examples/europe2.png)
 
+Alternative OSM tile servers can be used as well. An example is in the example notebook.
+
 [See the example notebook](http://nbviewer.ipython.org/github/rossant/smopy/blob/master/examples/example1.ipynb)
 
 ## Installation
