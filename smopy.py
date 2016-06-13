@@ -21,7 +21,7 @@ from IPython.display import display_png
 # -----------------------------------------------------------------------------
 # Constants
 # -----------------------------------------------------------------------------
-__version__ = '0.0.4'
+__version__ = '0.0.5'
 TILE_SIZE = 256
 MAXTILES = 16
 TILE_SERVER = "http://tile.openstreetmap.org/{z}/{x}/{y}.png"
