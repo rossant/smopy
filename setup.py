@@ -6,7 +6,7 @@ def read(fname):
 
 setup(
     name="smopy",
-    version='0.0.3',
+    version='0.0.5dev',
     author="Cyrille Rossant",
     author_email="rossant@github",
     description=(("OpenStreetMap image tiles in Python")),
@@ -21,5 +21,6 @@ setup(
         "Framework :: IPython",
         "License :: OSI Approved :: BSD License",
     ],
+    install_requires=['numpy', 'ipython', 'pillow', 'six', 'matplotlib'],
 )
 
