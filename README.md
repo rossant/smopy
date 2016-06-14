@@ -34,7 +34,13 @@ Smopy currently requires:
 * matplotlib
 * IPython
 
-To install, `pip install smopy` or git clone and put the folder in your PYTHONPATH.
+To install, `pip install smopy` or:
+
+```python
+git clone git@github.com:rossant/smopy.git
+cd smopy
+python setup.py develop
+```
 
 
 ## Terms of use
