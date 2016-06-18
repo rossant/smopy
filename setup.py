@@ -16,7 +16,7 @@ setup(
     keywords="openstreetmap matplotlib map maps ipython",
     url="http://packages.python.org/smopy",
     py_modules=['smopy'],
-    long_description=read('README.md'),
+    long_description=read('README'),
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Topic :: Utilities",
