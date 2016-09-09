@@ -14,7 +14,7 @@ setup(
     description="OpenStreetMap image tiles in Python",
     license="BSD",
     keywords="openstreetmap matplotlib map maps ipython",
-    url="http://packages.python.org/smopy",
+    url="https://github.com/rossant/smopy",
     py_modules=['smopy'],
     long_description=read('README'),
     classifiers=[
