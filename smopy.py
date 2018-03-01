@@ -22,47 +22,43 @@ from IPython.display import display_png
 # Constants
 # -----------------------------------------------------------------------------
 __version__ = '0.0.6'
-TILE_SIZE = 256
-MAXTILES = 16
-TILE_SERVER = "http://tile.openstreetmap.org/{z}/{x}/{y}.png"
-
 
 # -----------------------------------------------------------------------------
 # OSM functions
 # -----------------------------------------------------------------------------
-def get_url(x, y, z):
+def get_url(x, y, z, tileserver):
     """Return the URL to the image tile (x, y) at zoom z."""
-    return TILE_SERVER.format(z=z, x=x, y=y)
+    return tileserver.format(z=z, x=x, y=y)
 
 
-def fetch_tile(x, y, z):
+def fetch_tile(x, y, z, tileserver):
     """Fetch tile (x, y) at zoom level z from OpenStreetMap's servers.
 
     Return a PIL image.
 
     """
-    url = get_url(x, y, z)
+    url = get_url(x, y, z, tileserver)
     png = BytesIO(urlopen(url).read())
     img = Image.open(png)
     img.load()
     return img
 
 
-def fetch_map(box, z):
+def fetch_map(box, z, tileserver, tilesize, maxtiles):
     """Fetch OSM tiles composing a box at a given zoom level, and
     return the assembled PIL image."""
     box = correct_box(box, z)
     x0, y0, x1, y1 = box
     sx, sy = get_box_size(box)
-    if sx * sy >= MAXTILES:
+    if sx * sy >= maxtiles:
         raise Exception(("You are requesting a very large map, beware of "
                          "OpenStreetMap tile usage policy "
                          "(http://wiki.openstreetmap.org/wiki/Tile_usage_policy)."))
-    img = Image.new('RGB', (sx*TILE_SIZE, sy*TILE_SIZE))
+    img = Image.new('RGB', (sx*tilesize, sy*tilesize))
     for x in range(x0, x1 + 1):
         for y in range(y0, y1 + 1):
-            px, py = TILE_SIZE * (x - x0), TILE_SIZE * (y - y0)
-            img.paste(fetch_tile(x, y, z), (px, py))
+            px, py = tilesize * (x - x0), tilesize * (y - y0)
+            img.paste(fetch_tile(x, y, z, tileserver), (px, py))
     return img
 
 
@@ -250,7 +246,7 @@ class Map(object):
 
     Initialized as:
 
-        map = Map((lat_min, lon_min, lat_max, lon_max), z=z)
+        map = Map((lat_min, lon_min, lat_max, lon_max), z=z, tileserver="")
 
     where the first argument is a box in geographical coordinates, and z
     is the zoom level (from minimum zoom 1 to maximum zoom 19).
@@ -261,17 +257,32 @@ class Map(object):
 
     * To save a PNG: `map.save_png(filename)`.
 
+    Tested tileservers:
+
+    * http://tile.openstreetmap.org/{z}/{x}/{y}.png [default]
+
+    * http://a.tile.stamen.com/toner/{z}/{x}/{y}.png [stamen toner (b/w high contrast)]
+
+    * http://c.tile.stamen.com/watercolor/{z}/{x}/{y}.png [watercolor look]
+
+    * https://tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png [grayscale]
+
+
     """
 
     def __init__(self, *args, **kwargs):
         """Create and fetch the map with a given box in geographical
         coordinates.
 
-        Can be called with `Map(box, z=z)` or `Map(lat, lon, z=z)`.
+        Can be called with `Map(box, z=z)` or `Map(lat, lon, z=z, tileserver="http://tile.openstreetmap.org/{z}/{x}/{y}.png")`.
 
         """
         z = kwargs.get('z', 18)
         margin = kwargs.get('margin', .05)
+
+        self.tileserver = kwargs.get('tileserver', 'http://tile.openstreetmap.org/{z}/{x}/{y}.png')
+        self.tilesize = kwargs.get('tilesize', 256)
+        self.maxtiles = kwargs.get('maxtiles', 16)
 
         box = _box(*args)
         if margin is not None:
@@ -314,14 +325,14 @@ class Map(object):
         box_tile = get_tile_box(self.box, z)
         box = correct_box(box_tile, z)
         sx, sy = get_box_size(box)
-        if sx * sy >= MAXTILES:
+        if sx * sy >= self.maxtiles:
             z = self.get_allowed_zoom(z - 1)
         return z
 
     def fetch(self):
         """Fetch the image from OSM's servers."""
         if self.img is None:
-            self.img = fetch_map(self.box_tile, self.z)
+            self.img = fetch_map(self.box_tile, self.z, self.tileserver, self.tilesize, self.maxtiles)
         self.w, self.h = self.img.size
         return self.img
 
