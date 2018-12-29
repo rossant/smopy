@@ -314,8 +314,8 @@ class Map(object):
             else:
                 lat, lon = lat
         x, y = get_tile_coords(lat, lon, self.z)
-        px = (x - self.xmin) * TILE_SIZE
-        py = (y - self.ymin) * TILE_SIZE
+        px = (x - self.xmin) * self.tilesize
+        py = (y - self.ymin) * self.tilesize
         if return_2D:
             return np.c_[px, py]
         else:
