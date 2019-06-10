@@ -10,7 +10,7 @@ Smopy returns an OpenStreetMap tile image!
 from __future__ import print_function
 
 from six import BytesIO
-from six.moves.urllib.request import urlopen
+from six.moves.urllib.request import urlopen, Request
 
 from PIL import Image
 import numpy as np
@@ -22,6 +22,7 @@ from IPython.display import display_png
 # Constants
 # -----------------------------------------------------------------------------
 __version__ = '0.0.6'
+
 
 # -----------------------------------------------------------------------------
 # OSM functions
@@ -37,8 +38,10 @@ def fetch_tile(x, y, z, tileserver):
     Return a PIL image.
 
     """
+
     url = get_url(x, y, z, tileserver)
-    png = BytesIO(urlopen(url).read())
+    req = Request(url, data=None, headers={'User-Agent': 'smopy'})
+    png = BytesIO(urlopen(req).read())
     img = Image.open(png)
     img.load()
     return img
@@ -259,7 +262,7 @@ class Map(object):
 
     Tested tileservers:
 
-    * http://tile.openstreetmap.org/{z}/{x}/{y}.png [default]
+    * https://tile.openstreetmap.org/{z}/{x}/{y}.png [default]
 
     * http://a.tile.stamen.com/toner/{z}/{x}/{y}.png [stamen toner (b/w high contrast)]
 
@@ -274,13 +277,13 @@ class Map(object):
         """Create and fetch the map with a given box in geographical
         coordinates.
 
-        Can be called with `Map(box, z=z)` or `Map(lat, lon, z=z, tileserver="http://tile.openstreetmap.org/{z}/{x}/{y}.png")`.
+        Can be called with `Map(box, z=z)` or `Map(lat, lon, z=z, tileserver="https://tile.openstreetmap.org/{z}/{x}/{y}.png")`.
 
         """
         z = kwargs.get('z', 18)
         margin = kwargs.get('margin', .05)
 
-        self.tileserver = kwargs.get('tileserver', 'http://tile.openstreetmap.org/{z}/{x}/{y}.png')
+        self.tileserver = kwargs.get('tileserver', 'https://tile.openstreetmap.org/{z}/{x}/{y}.png')
         self.tilesize = kwargs.get('tilesize', 256)
         self.maxtiles = kwargs.get('maxtiles', 16)
 
