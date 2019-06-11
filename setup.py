@@ -8,7 +8,7 @@ def read(fname):
 
 setup(
     name="smopy",
-    version='0.0.6',
+    version='0.0.7',
     author="Cyrille Rossant",
     author_email="rossant@github",
     description="OpenStreetMap image tiles in Python",
