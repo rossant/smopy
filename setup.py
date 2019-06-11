@@ -10,7 +10,7 @@ setup(
     name="smopy",
     version='0.0.7',
     author="Cyrille Rossant",
-    author_email="rossant@github",
+    author_email="rossant@users.noreply.github.com",
     description="OpenStreetMap image tiles in Python",
     license="BSD",
     keywords="openstreetmap matplotlib map maps ipython",
