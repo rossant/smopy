@@ -240,7 +240,7 @@ def extend_box(box_latlon, margin=.1):
         max(lat0 - dlat, -80),
         max(lon0 - dlon, -180),
         min(lat1 + dlat, 80),
-        max(lon1 + dlon, 180),
+        min(lon1 + dlon, 180),
     )
 
 
