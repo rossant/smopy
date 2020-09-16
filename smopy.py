@@ -290,6 +290,7 @@ class Map(object):
         self.tileserver = kwargs.get('tileserver', 'https://tile.openstreetmap.org/{z}/{x}/{y}.png')
         self.tilesize = kwargs.get('tilesize', 256)
         self.maxtiles = kwargs.get('maxtiles', 16)
+        self.verbose = kwargs.get('verbose', True)    # set this to false for suppressing print() outputs
 
         box = _box(*args)
         if margin is not None:
@@ -298,8 +299,9 @@ class Map(object):
 
         self.z = self.get_allowed_zoom(z)
         if z > self.z:
-            print('Lowered zoom level to keep map size reasonable. '
-                  '(z = %d)' % self.z)
+            if self.verbose:
+                print('Lowered zoom level to keep map size reasonable. '
+                      '(z = %d)' % self.z)
         else:
             self.z = z
         self.box_tile = get_tile_box(self.box, self.z)
