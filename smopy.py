@@ -288,6 +288,8 @@ class Map(object):
         margin = kwargs.get('margin', .05)
 
         self.tileserver = kwargs.get('tileserver', 'https://tile.openstreetmap.org/{z}/{x}/{y}.png')
+        if self.tileserver == '':
+            self.tileserver = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'    # fixes situation where some sends an empty string for tileserver
         self.tilesize = kwargs.get('tilesize', 256)
         self.maxtiles = kwargs.get('maxtiles', 16)
         self.verbose = kwargs.get('verbose', True)    # set this to false for suppressing print() outputs
