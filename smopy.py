@@ -15,7 +15,6 @@ from six.moves.urllib.request import urlopen, Request
 from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
-from IPython.display import display_png
 
 
 # -----------------------------------------------------------------------------
@@ -378,6 +377,13 @@ class Map(object):
 
     def show_ipython(self):
         """Show the image in IPython as a PNG image."""
+        try:
+            from IPython.display import display_png
+        except ModuleNotFoundError:
+            print("Please make sure to install Smopy with: "
+                + "pip install smopy[ipython]"
+            )
+            raise
         png = image_to_png(self.img)
         display_png(png, raw=True)
 
