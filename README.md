@@ -32,9 +32,13 @@ Smopy currently requires:
 * Pillow
 * NumPy
 * matplotlib
-* IPython
+* IPython (optional)
 
-To install, `pip install smopy` or:
+To install Smopy run `pip install smopy`.
+
+For IPython support run `pip install smopy[ipython]`.
+
+To install Smopy directly from the repository run:
 
 ```python
 git clone git@github.com:rossant/smopy.git
