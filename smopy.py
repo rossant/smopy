@@ -46,7 +46,7 @@ def fetch_tile(x, y, z, tileserver):
     return img
 
 
-def fetch_map(box, z, tileserver, tilesize, maxtiles):
+def fetch_map(box, z, tileserver, tilesize, maxtiles, tms=False):
     """Fetch OSM tiles composing a box at a given zoom level, and
     return the assembled PIL image."""
     box = correct_box(box, z)
@@ -60,6 +60,8 @@ def fetch_map(box, z, tileserver, tilesize, maxtiles):
     for x in range(x0, x1 + 1):
         for y in range(y0, y1 + 1):
             px, py = tilesize * (x - x0), tilesize * (y - y0)
+            if tms:
+                y = (2 ** z) - y - 1
             img.paste(fetch_tile(x, y, z, tileserver), (px, py))
     return img
 
@@ -292,6 +294,7 @@ class Map(object):
         self.tilesize = kwargs.get('tilesize', 256)
         self.maxtiles = kwargs.get('maxtiles', 16)
         self.verbose = kwargs.get('verbose', True)    # set this to false for suppressing print() outputs
+        self.tms = kwargs.get('tms', False)
 
         box = _box(*args)
         if margin is not None:
@@ -342,7 +345,7 @@ class Map(object):
     def fetch(self):
         """Fetch the image from OSM's servers."""
         if self.img is None:
-            self.img = fetch_map(self.box_tile, self.z, self.tileserver, self.tilesize, self.maxtiles)
+            self.img = fetch_map(self.box_tile, self.z, self.tileserver, self.tilesize, self.maxtiles, self.tms)
         self.w, self.h = self.img.size
         return self.img
 
